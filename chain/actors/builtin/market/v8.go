@@ -194,14 +194,24 @@ func (s *dealProposals8) Get(dealID abi.DealID) (*DealProposal, bool, error) {
 	if !found {
 		return nil, false, nil
 	}
-	proposal := fromV8DealProposal(proposal8)
+
+	proposal, err := fromV8DealProposal(proposal8)
+	if err != nil {
+		return nil, true, xerrors.Errorf("decoding proposal: %w", err)
+	}
+
 	return &proposal, true, nil
 }
 
 func (s *dealProposals8) ForEach(cb func(dealID abi.DealID, dp DealProposal) error) error {
 	var dp8 market8.DealProposal
 	return s.Array.ForEach(&dp8, func(idx int64) error {
-		return cb(abi.DealID(idx), fromV8DealProposal(dp8))
+		dp, err := fromV8DealProposal(dp8)
+		if err != nil {
+			return xerrors.Errorf("decoding proposal: %w", err)
+		}
+
+		return cb(abi.DealID(idx), dp)
 	})
 }
 
@@ -210,7 +220,12 @@ func (s *dealProposals8) decode(val *cbg.Deferred) (*DealProposal, error) {
 	if err := dp8.UnmarshalCBOR(bytes.NewReader(val.Raw)); err != nil {
 		return nil, err
 	}
-	dp := fromV8DealProposal(dp8)
+
+	dp, err := fromV8DealProposal(dp8)
+	if err != nil {
+		return nil, err
+	}
+
 	return &dp, nil
 }
 
@@ -218,27 +233,26 @@ func (s *dealProposals8) array() adt.Array {
 	return s.Array
 }
 
-func fromV8DealProposal(v8 market8.DealProposal) DealProposal {
+func fromV8DealProposal(v8 market8.DealProposal) (DealProposal, error) {
 
-	label, err := v8.Label.ToString()
-	if err != nil {
-		bs, _ := v8.Label.ToBytes()
-		label = string(bs)
-	}
+	label := v8.Label
+
 	return DealProposal{
-		PieceCID:             v8.PieceCID,
-		PieceSize:            v8.PieceSize,
-		VerifiedDeal:         v8.VerifiedDeal,
-		Client:               v8.Client,
-		Provider:             v8.Provider,
-		Label:                label,
+		PieceCID:     v8.PieceCID,
+		PieceSize:    v8.PieceSize,
+		VerifiedDeal: v8.VerifiedDeal,
+		Client:       v8.Client,
+		Provider:     v8.Provider,
+
+		Label: label,
+
 		StartEpoch:           v8.StartEpoch,
 		EndEpoch:             v8.EndEpoch,
 		StoragePricePerEpoch: v8.StoragePricePerEpoch,
-		ProviderCollateral:   v8.ProviderCollateral,
-		ClientCollateral:     v8.ClientCollateral,
-	}
 
+		ProviderCollateral: v8.ProviderCollateral,
+		ClientCollateral:   v8.ClientCollateral,
+	}, nil
 }
 
 func (s *state8) GetState() interface{} {
