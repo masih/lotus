@@ -8,8 +8,8 @@ dweb="dweb.link"
 
 actors7_cid=""
 actors7_hash=""
-actors8_cid="bafybeictmywrut5tprz5fnoti6adfwuvixvrfardhqwldxosmdsfavc56e"
-actors8_hash="687b38f59b0c32800f55a8f1f303de214ec173c90e653984d67f393bc41c1416"
+actors8_cid="bafybeihbbovgjvdovnzqika3he5ndakeya43xhiwk5dmksjnzurde2vm7i"
+actors8_hash="a18b48616d47c06d0d8a43c50d5dfe8280acb512a54f2f78fdfdf6c50ca845e1"
 
 die() {
     echo "$1"
