@@ -215,6 +215,8 @@ type StorageMinerParams struct {
 	GetSealingConfigFn dtypes.GetSealingConfigFunc
 	Journal            journal.Journal
 	AddrSel            *storage.AddressSelector
+
+	ManifestLoaded dtypes.BuiltinActorsLoaded
 }
 
 func StorageMiner(fc config.MinerFeeConfig) func(params StorageMinerParams) (*storage.Miner, error) {
