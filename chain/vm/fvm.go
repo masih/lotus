@@ -361,13 +361,22 @@ func (vm *FVM) ApplyImplicitMessage(ctx context.Context, cmsg *types.Message) (*
 		}
 	}
 
+	var aerr aerrors.ActorError
+	if ret.ExitCode != 0 {
+		amsg := ret.FailureInfo
+		if amsg == "" {
+			amsg = "unknown error"
+		}
+		aerr = aerrors.New(exitcode.ExitCode(ret.ExitCode), amsg)
+	}
+
 	return &ApplyRet{
 		MessageReceipt: types.MessageReceipt{
 			Return:   ret.Return,
 			ExitCode: exitcode.ExitCode(ret.ExitCode),
 			GasUsed:  ret.GasUsed,
 		},
-		ActorErr:       nil,
+		ActorErr:       aerr,
 		ExecutionTrace: et.ToExecutionTrace(),
 		Duration:       time.Since(start),
 	}, nil
