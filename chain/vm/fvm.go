@@ -8,6 +8,7 @@ import (
 	"github.com/ipfs/go-cid"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/chain/actors/aerrors"
 	"github.com/filecoin-project/lotus/chain/actors/policy"
 
 	"github.com/filecoin-project/go-state-types/network"
@@ -311,6 +312,15 @@ func (vm *FVM) ApplyMessage(ctx context.Context, cmsg types.ChainMsg) (*ApplyRet
 		}
 	}
 
+	var aerr aerrors.ActorError
+	if ret.ExitCode != 0 {
+		amsg := ret.FailureInfo
+		if amsg == "" {
+			amsg = "unknown error"
+		}
+		aerr = aerrors.New(exitcode.ExitCode(ret.ExitCode), amsg)
+	}
+
 	return &ApplyRet{
 		MessageReceipt: types.MessageReceipt{
 			Return:   ret.Return,
@@ -327,7 +337,7 @@ func (vm *FVM) ApplyMessage(ctx context.Context, cmsg types.ChainMsg) (*ApplyRet
 			GasRefund:          0,
 			GasBurned:          0,
 		},
-		ActorErr:       nil,
+		ActorErr:       aerr,
 		ExecutionTrace: et.ToExecutionTrace(),
 		Duration:       time.Since(start),
 	}, nil
